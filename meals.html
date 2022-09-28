@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Document</title>
+    <style>
+      body {
+        /* text-align: center; */
+        background-color: #2d2013;
+      }
+
+      .App {
+        text-align: center;
+      }
+
+      .heading {
+        color: white;
+      }
+
+      #meals {
+        display: grid;
+        grid-template-columns: auto auto auto auto;
+        grid-gap: 30px;
+        width: 80%;
+        margin: auto;
+      }
+
+      #mealsinfo {
+        width: 80%;
+        margin: auto;
+      }
+
+      #mealsinfo li {
+        color: white;
+      }
+
+      ul {
+        padding-left: 0px;
+      }
+
+      .meal {
+        position: relative;
+        transition: all 4.4s ease;
+        /* width: 300px; */
+      }
+
+      .meal-title {
+        position: absolute;
+        color: white;
+        width: 100%;
+        top: 50%;
+        left: 50%;
+        text-align: center;
+        transform: translate(-50%, -50%);
+        /* display: none; */
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .meal img {
+        width: 100%;
+      }
+
+      .meal:hover .meal-title {
+        /* display: block; */
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .meal-info {
+        width: 300px;
+      }
+
+      .meal-info img {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="App">
+      <h2 class="heading">Meals App</h2>
+      <form>
+        <input type="text" id="meal" />
+        <input type="button" onclick="getMeals()" value="Get meal " />
+      </form>
+    </div>
+
+    <div id="meals"></div>
+
+    <div id="mealsinfo"></div>
+
+    <script>
+      function getMeals() {
+        clearData();
+        var meal = document.getElementById("meal").value;
+        var url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${meal}`;
+        var ss = "test";
+        fetch(url)
+          .then((resp) => resp.json())
+          .then((data) => {
+            document.getElementById("meals").innerHTML = data.meals
+              .map(
+                (meal) =>
+                  `<a href='#' class='meal' onclick='mealInfo()' data-mealid='${meal.idMeal}'><div class=''><img src='${meal.strMealThumb}'><p class='meal-title'>${meal.strMeal} from ${meal.strCategory}</p></div></a>`
+              )
+              .join("");
+          });
+      }
+
+      function mealInfo() {
+        var mealInfo = event.path.find((item) =>
+          item.classList.contains("meal")
+        );
+        var mealID = mealInfo.getAttribute("data-mealid");
+
+        var url = `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${mealID}`;
+        fetch(url)
+          .then((resp) => resp.json())
+          .then((data) => {
+            console.log(data);
+            var meal = data.meals[0];
+            var allMeals = prepareMeals(data);
+            var d;
+            allMeals.forEach((meal) => {
+              d += `<li>${meal}</li>`;
+            });
+
+            document.getElementById("meals").innerHTML = "";
+            document.getElementById("mealsinfo").innerHTML = `
+            <button onclick='clearData()'>Go Back</button> <br>
+              <div class='meal-info'>
+                <h2  class="heading">${meal.strMeal}</h2>
+                <img src='${meal.strMealThumb}' width='300'>
+                <ul class='ingredients'>
+                  ${d}
+                </ul>
+
+                <h3></h3>
+              </div>
+
+            `;
+            console.log(data);
+          });
+      }
+
+      function prepareMeals(data) {
+        var allMeals = [];
+        for (i = 1; i < 100; i++) {
+          if (data.meals[0][`strIngredient${i}`] == "") {
+            break;
+          } else {
+            allMeals.push(data.meals[0][`strIngredient${i}`]);
+          }
+        }
+        return allMeals;
+      }
+
+      function clearData() {
+        document.getElementById("meals").innerHTML = "";
+        document.getElementById("mealsinfo").innerHTML = "";
+      }
+    </script>
+  </body>
+</html>
